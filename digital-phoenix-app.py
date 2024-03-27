@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request 
+from dotenv import load_dotenv
+import os
 
 # import json to load JSON data to a python dictionary 
 import json 
@@ -18,7 +20,7 @@ def weather():
 		city = 'Chantilly'
 
 	# your API key will come here 
-	api = '${{ secrets.API_KEY }}'
+	api = os.environ['API_KEY']
 
 	# source contain json data from api 
 	source = urllib.request.urlopen('http://api.openweathermap.org/data/2.5/weather?q=' + city + '&appid=' + api).read() 
