@@ -35,12 +35,12 @@
   <div class="row">
     {% if data.country_code and data.coordinate and data.temp and data.pressure and data.humidity %}
     <div class="col-md-6 col-md-offset-3">
-      <h3>Country Code : {{data.country_code}}</h1>
-        <h5>City name : {{data.cityname}}</h5>
-        <h5>Coordinates : {{data.coordinate}}</h5>
-        <h5>Temperature: {{data.temp}}&deg;C</h5>
-        <h5>Pressure : {{data.pressure}}hPa </h5>
-        <h5>Humidity : {{data.humidity}}%</h5>
+      <h3><span class="glyphicon glyphicon-globe"></span>Country Code : {{data.country_code}}</h1>
+        <h5><span class="glyphicon glyphicon-map-marker"></span>City name : {{data.cityname}}</h5>
+        <h5><span class="glyphicon glyphicon-screenshot"></span>Coordinates : {{data.coordinate}}</h5>
+        <h5><span class="glyphicon glyphicon-fire"></span>Temperature: {{data.temp}}&deg;C</h5>
+        <h5><span class="glyphicon glyphicon-tint"></span>Pressure : {{data.pressure}}hPa </h5>
+        <h5><span class="glyphicon glyphicon-cloud"></span>Humidity : {{data.humidity}}%</h5>
     </div>
     {% endif %}
   </div>
