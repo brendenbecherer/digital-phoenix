@@ -1,169 +1,144 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "The template used to create an ECS Service from the ECS Console.",
-  "Parameters": {
-    "ECSClusterName": {
-      "Type": "String",
-      "Default": "digital-phoenix-cluster"
+  "Parameters":
+    {
+      "ECSClusterName":
+        { "Type": "String", "Default": "digital-phoenix-cluster" },
+      "ECSServiceName": { "Type": "String", "Default": "digital-phoenix-svc" },
+      "SecurityGroupIDs":
+        { "Type": "CommaDelimitedList", "Default": "sg-088da2d250d0463f7" },
+      "SubnetIDs":
+        {
+          "Type": "CommaDelimitedList",
+          "Default": "subnet-05c46f3be5a676cb5,subnet-040e8b5b19336d83b,subnet-031dacc5a5505b5a9,subnet-032e3c7abca07818e",
+        },
+      "VpcID": { "Type": "String", "Default": "vpc-06583f7ae17c0a233" },
+      "LoadBalancerName":
+        { "Type": "String", "Default": "digital-phoenix-alb" },
     },
-    "ECSServiceName": {
-      "Type": "String",
-      "Default": "digital-phoenix-svc"
-    },
-    "SecurityGroupIDs": {
-      "Type": "CommaDelimitedList",
-      "Default": "sg-088da2d250d0463f7"
-    },
-    "SubnetIDs": {
-      "Type": "CommaDelimitedList",
-      "Default": "subnet-05c46f3be5a676cb5,subnet-040e8b5b19336d83b,subnet-031dacc5a5505b5a9,subnet-032e3c7abca07818e"
-    },
-    "VpcID": {
-      "Type": "String",
-      "Default": "vpc-06583f7ae17c0a233"
-    },
-    "LoadBalancerName": {
-      "Type": "String",
-      "Default": "digital-phoenix-alb"
-    }
-  },
-  "Resources": {
-    "ECSService": {
-      "Type": "AWS::ECS::Service",
-      "Properties": {
-        "Cluster": "digital-phoenix-cluster",
-        "TaskDefinition": "arn:aws:ecs:us-west-2:242735138486:task-definition/digital-phoenix-task-definition:1",
-        "LaunchType": "FARGATE",
-        "ServiceName": "digital-phoenix-svc",
-        "SchedulingStrategy": "REPLICA",
-        "DesiredCount": 2,
-        "LoadBalancers": [
-          {
-            "ContainerName": "digital-phoenix-repo",
-            "ContainerPort": 80,
-            "LoadBalancerName": {
-              "Ref": "AWS::NoValue"
+  "Resources":
+    {
+      "ECSService":
+        {
+          "Type": "AWS::ECS::Service",
+          "Properties":
+            {
+              "Cluster": "digital-phoenix-cluster",
+              "TaskDefinition": "arn:aws:ecs:us-west-2:242735138486:task-definition/digital-phoenix-task-definition",
+              "LaunchType": "FARGATE",
+              "ServiceName": "digital-phoenix-svc",
+              "SchedulingStrategy": "REPLICA",
+              "DesiredCount": 2,
+              "LoadBalancers":
+                [
+                  {
+                    "ContainerName": "digital-phoenix-repo",
+                    "ContainerPort": 80,
+                    "LoadBalancerName": { "Ref": "AWS::NoValue" },
+                    "TargetGroupArn": { "Ref": "TargetGroup" },
+                  },
+                ],
+              "NetworkConfiguration":
+                {
+                  "AwsvpcConfiguration":
+                    {
+                      "AssignPublicIp": "ENABLED",
+                      "SecurityGroups": { "Ref": "SecurityGroupIDs" },
+                      "Subnets": { "Ref": "SubnetIDs" },
+                    },
+                },
+              "PlatformVersion": "LATEST",
+              "DeploymentConfiguration":
+                {
+                  "MaximumPercent": 200,
+                  "MinimumHealthyPercent": 100,
+                  "DeploymentCircuitBreaker":
+                    { "Enable": true, "Rollback": true },
+                },
+              "DeploymentController": { "Type": "ECS" },
+              "ServiceConnectConfiguration": { "Enabled": false },
+              "Tags": [],
+              "EnableECSManagedTags": true,
             },
-            "TargetGroupArn": {
-              "Ref": "TargetGroup"
-            }
-          }
-        ],
-        "NetworkConfiguration": {
-          "AwsvpcConfiguration": {
-            "AssignPublicIp": "ENABLED",
-            "SecurityGroups": {
-              "Ref": "SecurityGroupIDs"
+          "DependsOn": ["Listener"],
+        },
+      "LoadBalancer":
+        {
+          "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+          "Properties":
+            {
+              "Type": "application",
+              "Name": "digital-phoenix-alb",
+              "SecurityGroups": { "Ref": "SecurityGroupIDs" },
+              "Subnets": { "Ref": "SubnetIDs" },
             },
-            "Subnets": {
-              "Ref": "SubnetIDs"
-            }
-          }
         },
-        "PlatformVersion": "LATEST",
-        "DeploymentConfiguration": {
-          "MaximumPercent": 200,
-          "MinimumHealthyPercent": 100,
-          "DeploymentCircuitBreaker": {
-            "Enable": true,
-            "Rollback": true
-          }
+      "TargetGroup":
+        {
+          "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+          "Properties":
+            {
+              "HealthCheckPath": "/",
+              "Name": "ecs-digital-phoenix-svc-tg",
+              "Port": 80,
+              "Protocol": "HTTP",
+              "TargetType": "ip",
+              "HealthCheckProtocol": "HTTP",
+              "VpcId": { "Ref": "VpcID" },
+              "TargetGroupAttributes":
+                [
+                  {
+                    "Key": "deregistration_delay.timeout_seconds",
+                    "Value": "300",
+                  },
+                ],
+            },
         },
-        "DeploymentController": {
-          "Type": "ECS"
+      "Listener":
+        {
+          "Type": "AWS::ElasticLoadBalancingV2::Listener",
+          "Properties":
+            {
+              "DefaultActions":
+                [
+                  {
+                    "Type": "forward",
+                    "TargetGroupArn": { "Ref": "TargetGroup" },
+                  },
+                ],
+              "LoadBalancerArn": { "Ref": "LoadBalancer" },
+              "Port": 80,
+              "Protocol": "HTTP",
+            },
         },
-        "ServiceConnectConfiguration": {
-          "Enabled": false
+    },
+  "Outputs":
+    {
+      "ClusterName":
+        {
+          "Description": "The cluster used to create the service.",
+          "Value": { "Ref": "ECSClusterName" },
         },
-        "Tags": [],
-        "EnableECSManagedTags": true
-      },
-      "DependsOn": [
-        "Listener"
-      ]
-    },
-    "LoadBalancer": {
-      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
-      "Properties": {
-        "Type": "application",
-        "Name": "digital-phoenix-alb",
-        "SecurityGroups": {
-          "Ref": "SecurityGroupIDs"
+      "ECSService":
+        {
+          "Description": "The created service.",
+          "Value": { "Ref": "ECSService" },
         },
-        "Subnets": {
-          "Ref": "SubnetIDs"
-        }
-      }
-    },
-    "TargetGroup": {
-      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-      "Properties": {
-        "HealthCheckPath": "/",
-        "Name": "ecs-digital-phoenix-svc-tg",
-        "Port": 80,
-        "Protocol": "HTTP",
-        "TargetType": "ip",
-        "HealthCheckProtocol": "HTTP",
-        "VpcId": {
-          "Ref": "VpcID"
+      "LoadBalancer":
+        {
+          "Description": "The created load balancer.",
+          "Value": { "Ref": "LoadBalancer" },
         },
-        "TargetGroupAttributes": [
-          {
-            "Key": "deregistration_delay.timeout_seconds",
-            "Value": "300"
-          }
-        ]
-      }
-    },
-    "Listener": {
-      "Type": "AWS::ElasticLoadBalancingV2::Listener",
-      "Properties": {
-        "DefaultActions": [
-          {
-            "Type": "forward",
-            "TargetGroupArn": {
-              "Ref": "TargetGroup"
-            }
-          }
-        ],
-        "LoadBalancerArn": {
-          "Ref": "LoadBalancer"
+      "Listener":
+        {
+          "Description": "The created listener.",
+          "Value": { "Ref": "Listener" },
         },
-        "Port": 80,
-        "Protocol": "HTTP"
-      }
-    }
-  },
-  "Outputs": {
-    "ClusterName": {
-      "Description": "The cluster used to create the service.",
-      "Value": {
-        "Ref": "ECSClusterName"
-      }
+      "TargetGroup":
+        {
+          "Description": "The created target group.",
+          "Value": { "Ref": "TargetGroup" },
+        },
     },
-    "ECSService": {
-      "Description": "The created service.",
-      "Value": {
-        "Ref": "ECSService"
-      }
-    },
-    "LoadBalancer": {
-      "Description": "The created load balancer.",
-      "Value": {
-        "Ref": "LoadBalancer"
-      }
-    },
-    "Listener": {
-      "Description": "The created listener.",
-      "Value": {
-        "Ref": "Listener"
-      }
-    },
-    "TargetGroup": {
-      "Description": "The created target group.",
-      "Value": {
-        "Ref": "TargetGroup"
-      }
-    }
-  }
 }
