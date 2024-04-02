@@ -21,6 +21,7 @@ def weather():
 
 	# your API key will come here 
 	api = os.environ['API_KEY']
+	google_maps_api_key = os.getenv('GOOGLE_MAPS_API_KEY')
 
 	# source contain json data from api 
 	source = urllib.request.urlopen('http://api.openweathermap.org/data/2.5/weather?q=' + city + '&appid=' + api).read() 
@@ -36,7 +37,8 @@ def weather():
 					+ str(list_of_data['coord']['lon']), 
 		"temp": float(list_of_data['main']['temp']), 
 		"pressure": str(list_of_data['main']['pressure']), 
-		"humidity": str(list_of_data['main']['humidity']), 
+		"humidity": str(list_of_data['main']['humidity']),
+		"google_maps_api_key": google_maps_api_key 
 	} 
 	data["temp"]=round(data["temp"] - 273.15, 2)
 

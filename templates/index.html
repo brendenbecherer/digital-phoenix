@@ -13,6 +13,14 @@
   <!-- Latest compiled JavaScript -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
 
+  <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}"></script>
+  
+  <style>
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+  </style>
 </head>
 
 <body>
@@ -22,6 +30,10 @@
     </div>
     <h1 class="col-md-3 text-center">Weather!</h1>
   </nav>
+
+  <!-- Google Map -->
+  <div id="map"></div>
+
   <br />
   <br />
   <center class="row">
@@ -47,6 +59,29 @@
     </div>
     {% endif %}
   </div>
+
+  <script>
+    function initMap() {
+      var coordinates = "{{ data.coordinate }}".split(',');
+      var latitude = parseFloat(coordinates[0]);
+      var longitude = parseFloat(coordinates[1]);
+
+      var map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: latitude, lng: longitude },
+        zoom: 15
+      });
+
+      var marker = new google.maps.Marker({
+        position: { lat: latitude, lng: longitude },
+        map: map,
+        title: 'Weather Location'
+      });
+    }
+
+    // Initialize the map
+    initMap();
+  </script>
+
 </body>
 
 </html>
