@@ -13,7 +13,7 @@
   <!-- Latest compiled JavaScript -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
 
-  <script src="https://maps.googleapis.com/maps/api/js?key={{google_maps_api_key}}"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key={{google_maps_api_key}}&callback=initMap" async defer></script>
 
   <style>
     #map {
@@ -77,9 +77,6 @@
         title: 'Weather Location'
       });
     }
-
-    // Initialize the map
-    initMap();
   </script>
 
 </body>
