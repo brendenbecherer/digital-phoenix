@@ -26,6 +26,14 @@
         nav {
             background-color: #6e83f7;
             color: #ffffff;
+            height: 210px;
+        }
+
+        nav img {
+            height: 200px;
+            width: auto;
+            display: block;
+            margin: auto;
         }
 
         .search-form {
@@ -40,8 +48,8 @@
 
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
-            <a class="navbar-brand mx-auto" href="#">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 200px; width: auto;">
+            <a class="navbar-brand" href="#">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
             </a>
         </div>
     </nav>
